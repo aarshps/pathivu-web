@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sheet } from "./Sheet";
 import { useApp } from "./AppProvider";
 import * as Stats from "@/lib/habitStats";
 import { iconFor } from "@/lib/constants";
+import { analytics } from "@/lib/analytics";
 
 /** Back-fill editor: pick any past day and toggle each habit for that date. */
 export function DayEditorSheet({
@@ -19,6 +20,10 @@ export function DayEditorSheet({
 }) {
   const { habits, toggleDay } = useApp();
   const [selected, setSelected] = useState(initialDate);
+
+  useEffect(() => {
+    if (open) analytics.screenDayEditorOpen();
+  }, [open]);
 
   const today = Stats.today();
   const atToday = selected >= today;

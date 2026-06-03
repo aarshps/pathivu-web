@@ -17,6 +17,7 @@ import {
   type ThemePref,
 } from "@/lib/preferences";
 import { iconFor } from "@/lib/constants";
+import { analytics } from "@/lib/analytics";
 
 const WEEK_OPTIONS = [
   { iso: 1, label: "Monday" },
@@ -42,6 +43,7 @@ export default function SettingsPage() {
   const [dayStart, setDayStartState] = useState(0);
 
   useEffect(() => {
+    analytics.screenSettingsOpen();
     setThemeState(getTheme());
     setWeekStartState(getWeekStart());
     setDayStartState(getDayStart());
@@ -51,6 +53,7 @@ export default function SettingsPage() {
 
   async function doSignOut() {
     if (!confirm("Sign out? You can sign back in anytime — your habits stay safely synced.")) return;
+    analytics.authSignOut();
     await signOut();
     router.push("/");
   }
@@ -79,6 +82,7 @@ export default function SettingsPage() {
               onSelect={(v) => {
                 setTheme(v as ThemePref);
                 setThemeState(v as ThemePref);
+                analytics.settingThemeChange(v);
               }}
             />
           </Row>
@@ -93,6 +97,7 @@ export default function SettingsPage() {
                 const v = Number(e.target.value);
                 setDayStart(v);
                 setDayStartState(v);
+                analytics.settingDayStartChange(v);
               }}
               className="bg-surface-container rounded-xl px-3 py-2 text-sm outline-none"
             >
@@ -110,6 +115,7 @@ export default function SettingsPage() {
                 const v = Number(e.target.value);
                 setWeekStart(v);
                 setWeekStartState(v);
+                analytics.settingWeekStartChange(v);
               }}
               className="bg-surface-container rounded-xl px-3 py-2 text-sm outline-none"
             >
@@ -142,7 +148,12 @@ export default function SettingsPage() {
                     </div>
                     <span className="flex-1 truncate font-medium">{h.name}</span>
                     <button
-                      onClick={() => user && h.id && restoreHabit(user.uid, h.id)}
+                      onClick={() => {
+                        if (user && h.id) {
+                          restoreHabit(user.uid, h.id);
+                          analytics.habitRestore();
+                        }
+                      }}
                       aria-label="Restore"
                       className="grid place-items-center h-9 w-9 rounded-full text-on-surface-variant hover:bg-surface-container transition"
                     >
@@ -152,6 +163,7 @@ export default function SettingsPage() {
                       onClick={() => {
                         if (user && h.id && confirm(`Permanently delete "${h.name}" and all its history? This can't be undone.`)) {
                           deleteHabit(user.uid, h.id);
+                          analytics.habitDelete();
                         }
                       }}
                       aria-label="Delete permanently"

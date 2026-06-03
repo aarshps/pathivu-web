@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -9,6 +10,7 @@ import {
   Layers,
 } from "lucide-react";
 import { useApp } from "@/components/AppProvider";
+import { analytics } from "@/lib/analytics";
 import { Heatmap } from "@/components/Heatmap";
 import * as Stats from "@/lib/habitStats";
 import { iconFor } from "@/lib/constants";
@@ -16,6 +18,7 @@ import { type Habit, SCHEDULE_MONTHLY_COUNT, SCHEDULE_WEEKLY_COUNT } from "@/lib
 
 export default function StatsPage() {
   const { habits } = useApp();
+  useEffect(() => analytics.screenStatsOpen(), []);
   const active = habits.filter((h) => !h.archived);
   const positives = active.filter((h) => !h.negative);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Sheet } from "./Sheet";
 import {
@@ -16,6 +16,7 @@ import { HABIT_ICONS, iconFor, DAY_LABELS } from "@/lib/constants";
 import { createHabit, updateHabit, archiveHabit } from "@/lib/firestore";
 import { useApp } from "./AppProvider";
 import { haptics } from "@/lib/haptics";
+import { analytics } from "@/lib/analytics";
 
 /** Create / edit a habit. Mirrors the native AddHabitSheet. */
 export function AddHabitSheet({
@@ -46,6 +47,10 @@ export function AddHabitSheet({
 
   const accent = negative ? "var(--danger)" : "var(--accent)";
   const SelIcon = iconFor(icon);
+
+  useEffect(() => {
+    if (open) (editing ? analytics.habitEditOpen : analytics.habitAddOpen)();
+  }, [open, editing]);
 
   async function save() {
     const trimmed = name.trim();
@@ -78,6 +83,7 @@ export function AddHabitSheet({
     try {
       if (editing && habit?.id) await updateHabit(user.uid, habit.id, fields);
       else await createHabit(user.uid, { ...defaultHabit(), ...fields });
+      analytics.habitSave(!editing, negative ? "negative" : finalSchedule);
       onClose();
     } catch {
       setSaving(false);
@@ -90,6 +96,7 @@ export function AddHabitSheet({
     if (!confirm(`Delete "${habit.name}"? Its history stays in the calendar; remove it permanently later from Settings → Archived habits.`)) return;
     haptics.warning();
     await archiveHabit(user.uid, habit.id);
+    analytics.habitArchive();
     onClose();
   }
 

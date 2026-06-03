@@ -16,6 +16,7 @@ import { type Habit } from "@/lib/habit";
 import { computeHero, type HeroState } from "@/lib/heroState";
 import * as Stats from "@/lib/habitStats";
 import { hydratePreferences } from "@/lib/preferences";
+import { analytics } from "@/lib/analytics";
 
 interface AppState {
   user: User | null;
@@ -81,6 +82,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const done = habit.completedDates.includes(ds);
       // Optimistic update; Firestore offline cache + onSnapshot reconcile.
       void setDayDone(user.uid, habit.id, ds, !done);
+      if (ds === Stats.todayStr()) analytics.habitToggle(!done);
+      else analytics.habitToggleBackfill();
     },
     [user],
   );
@@ -94,6 +97,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (orderedIds: string[]) => {
       if (!user) return;
       void persistOrder(user.uid, orderedIds);
+      analytics.habitReorder();
     },
     [user],
   );

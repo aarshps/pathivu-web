@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signInWithGoogle } from "@/lib/auth";
+import { analytics } from "@/lib/analytics";
 
 /** Sign-in gate. Google only (same accounts as the native apps → instant sync). */
 export function SignIn() {
@@ -12,6 +13,7 @@ export function SignIn() {
     setBusy(true);
     setError(null);
     try {
+      analytics.authSignIn("google");
       await signInWithGoogle();
     } catch {
       setError("Sign-in failed. Please try again.");
