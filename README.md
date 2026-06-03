@@ -10,6 +10,9 @@ web, Android and iOS.
 Built with Next.js (App Router) + Firebase Web SDK + Tailwind v4, deployed on
 Vercel. Installable as a PWA.
 
+**Live:** [pathivu-web.vercel.app](https://pathivu-web.vercel.app) — auto-deploys
+from `main` (PRs get preview deployments).
+
 ## What's here
 
 - **Domain layer** ported 1:1 from the native apps — the wire-identical `Habit`
@@ -23,6 +26,9 @@ Vercel. Installable as a PWA.
 - **Screens** — Home (hero ring + reorderable habit list + day editor sheet +
   add/edit sheet), Stats (`/stats`: tiles + 16-week heatmap + breakdown),
   Settings (`/settings`: theme, week-start, day-start, archived habits, account).
+- **Analytics** — `lib/analytics.ts`, a Firebase Analytics (GA4) wrapper whose
+  event names mirror the native `Analytics.kt`/`.swift` 1:1 (`habit_*`,
+  `screen_*`, `setting_*`, `auth_*`), booted on app mount.
 
 ### v1 scope
 
@@ -41,32 +47,36 @@ npm test                     # stats-engine unit tests
 npm run build                # production build
 ```
 
-## Firebase setup (one-time)
+## Firebase setup (already done)
 
-The `hora-pathivu` project already exists (used by the native apps). For the web
-client:
+The web client uses the shared `hora-pathivu` Firebase project. The one-time
+setup is complete:
 
-1. **Register a Web app** in the Firebase console for `hora-pathivu` → copy its
-   `appId` (`1:957084965409:web:...`) into `NEXT_PUBLIC_FIREBASE_APP_ID`. The
-   other config values are already public (from `google-services.json`) and are
-   pre-filled in `.env.example` / `.env.local`.
-2. **Authentication → Settings → Authorized domains** — add `localhost` (already
-   there) and your Vercel domains (`pathivu.vercel.app` + any custom/preview
-   domain). Without this, Google sign-in is rejected on those origins.
-3. Confirm **Google** is enabled as a sign-in provider (it is, for the native
-   apps). Confirm Firestore rules still scope `users/{uid}/**` to the owner — the
-   web client uses the same rules.
+- A **Web app** ("Pathivu Web") is registered → `NEXT_PUBLIC_FIREBASE_APP_ID`.
+- **Google Analytics** is enabled on the project (GA4), giving the web data
+  stream `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` — this also activates analytics
+  collection for the Android/iOS apps.
+- The Vercel domains (`pathivu-web.vercel.app` + `-aarshps` variants) are added
+  to **Authentication → Settings → Authorized domains** so Google sign-in is
+  allowed there.
+- **Google** sign-in is enabled; Firestore rules scope `users/{uid}/**` to the
+  owner — the web client uses the same rules.
 
 > Firebase web config is **public by design** (it ships in every client);
 > security is enforced by Firestore rules, not by hiding these values.
 
-## Deploy to Vercel (team `aarshps`)
+## Deploy (Vercel team `aarshps`, project `pathivu-web`)
 
-1. Push this repo to GitHub and import it into the `aarshps` Vercel team.
-2. Add the `NEXT_PUBLIC_FIREBASE_*` environment variables (same values as
-   `.env.local`) in the Vercel project settings.
-3. Deploy. Then add the resulting domain to Firebase **Authorized domains**
-   (step 2 above).
+The GitHub repo is connected, so deployment is automatic:
+
+- Push to **`main`** → production deploy at `pathivu-web.vercel.app`.
+- Open a **PR / push a branch** → preview deploy.
+- Manual deploy if needed: `npx vercel deploy --prod`.
+
+`NEXT_PUBLIC_FIREBASE_*` are set in the Vercel project (Production). **Note:** the
+same vars still need adding to the **Preview** environment for PR previews to have
+working Firebase — set them in *Settings → Environment Variables* (check Preview)
+or `vercel env add … preview`.
 
 ## Verify end-to-end
 
