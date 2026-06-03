@@ -33,6 +33,16 @@ function track(event: string, params?: Record<string, unknown>) {
   });
 }
 
+/**
+ * Eagerly initialise Analytics on app mount (like the native apps at startup) so
+ * the GA4 SDK loads and automatic `page_view` / `session_start` collection
+ * begins without waiting for the first tracked interaction. No-ops on
+ * SSR/unsupported/when GA isn't configured.
+ */
+export function initAnalytics() {
+  void instance();
+}
+
 export const analytics = {
   // Habit flows
   habitAddOpen: () => track("habit_add_open"),

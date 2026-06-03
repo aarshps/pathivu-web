@@ -16,7 +16,7 @@ import { type Habit } from "@/lib/habit";
 import { computeHero, type HeroState } from "@/lib/heroState";
 import * as Stats from "@/lib/habitStats";
 import { hydratePreferences } from "@/lib/preferences";
-import { analytics } from "@/lib/analytics";
+import { analytics, initAnalytics } from "@/lib/analytics";
 
 interface AppState {
   user: User | null;
@@ -43,9 +43,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitsLoading, setHabitsLoading] = useState(true);
 
-  // Apply persisted prefs to the stats engine before anything renders data.
+  // Apply persisted prefs to the stats engine before anything renders data,
+  // and boot Analytics so automatic page_view collection starts immediately.
   useEffect(() => {
     hydratePreferences();
+    initAnalytics();
   }, []);
 
   useEffect(() => {
